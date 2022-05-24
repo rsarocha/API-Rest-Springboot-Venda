@@ -10,6 +10,10 @@ import org.springframework.stereotype.Service;
 
 import br.com.venda.VO.CategoriaVO;
 import br.com.venda.entity.Categoria;
+import br.com.venda.exception.CategoriaCadastradaException;
+import br.com.venda.exception.CodigoCadastradoException;
+import br.com.venda.exception.CodigoInvalidoException;
+import br.com.venda.exception.NaoLocalizadoException;
 import br.com.venda.repository.CategoriaRepository;
 
 @Service
@@ -20,7 +24,7 @@ public class CategoriaService {
 	@Autowired
 	private CategoriaRepository repository;
 
-	public List<CategoriaVO> buscarTodos() {
+	public List<CategoriaVO> findAll() {
 
 		logger.info("Buscando todas categorias");
 
@@ -32,6 +36,69 @@ public class CategoriaService {
 
 			return vo;
 		}).collect(Collectors.toList());
+
+	}
+
+	public CategoriaVO findByCodigo(Long codigo) {
+		logger.info("Buscando categoria por código");
+
+		Categoria entity = repository.findByCodigo(codigo)
+				.orElseThrow(() -> new NaoLocalizadoException("Código não encontrado: " + codigo));
+
+		return converterEntityParaVO(entity);
+	}
+
+	public CategoriaVO save(CategoriaVO categoriaVO) {
+
+		verificarExistenciaDeCategoria(categoriaVO);
+
+		logger.info("CADASTRANDO CATEGORIA");
+		Categoria save = repository.save(converterVOParaEntity(categoriaVO));
+		logger.info("CATEGORIA SALVA COM SUCESSO");
+
+		return converterEntityParaVO(save);
+	}
+
+	public CategoriaVO update(CategoriaVO vo) {
+
+		validarParaAtualizar(vo);
+		repository.save(converterVOParaEntity(vo));
+
+		return vo;
+	}
+
+	private void verificarExistenciaDeCategoria(CategoriaVO categoria) {
+
+		logger.info("VERIFICANDO EXISTENCIA DE CATEGORIA SALVA NO BANCO");
+
+		if (repository.findByNome(categoria.getNome()).isPresent()) {
+			logger.error("JÁ EXISTE CATEGORIA CADASTRADA COM O NOME {}" + categoria.getNome() + categoria.getCodigo());
+			throw new CategoriaCadastradaException("Já Existe categoria cadastrada: " + categoria.getNome());
+		}
+
+		if (repository.findByCodigo(categoria.getCodigo()).isPresent()) {
+			logger.error("JÁ EXISTE CATEGORIA CADASTRADA COM O CÓDIGO {} " + categoria.getCodigo());
+			throw new CodigoCadastradoException(
+					"Já Existe categoria cadastrada com o código: " + categoria.getCodigo());
+		}
+
+	}
+
+	private void validarParaAtualizar(CategoriaVO vo) {
+
+		logger.info("VALIDANDO CODIG DO INPUT PARA ATUALIZAR CATEGORIA");
+
+		if (vo.getCodigo() == null) {
+			logger.error("CÓDIGO INFORMADO É NULO");
+			throw new CodigoInvalidoException("O código não pode ser nulo");
+		}
+
+		if (vo.getCodigo().compareTo((long) 1) <= 0) {
+			logger.error("CODIGO DA CATEGORIA INFORMADO É NEGATIVO OU ZERO");
+			throw new CodigoInvalidoException("O código deve ser maior que zero");
+		}
+
+		logger.info("ATUALIZAR CATEGORIA: VERIFIFICANDO A EXISTENCIA DE CATEGORIA JÁ CADASTRADA NO BANCO");
 
 	}
 
