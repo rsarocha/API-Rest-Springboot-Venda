@@ -68,8 +68,14 @@ public class CategoriaService {
 		entity.get().setCodigo(vo.getCodigo());
 		entity.get().setNome(vo.getNome());
 		return vo = converterEntityParaVO(repository.save(entity.get()));
-		
 
+	}
+
+	public CategoriaVO delete(Long codigo) {
+
+		Optional<Categoria> entity = repository.findByCodigo(codigo);
+		repository.delete(entity.get());
+		return converterEntityParaVO(entity.get());
 	}
 
 	private void verificarExistenciaDeCategoria(CategoriaVO categoria) {
