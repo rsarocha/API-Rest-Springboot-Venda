@@ -45,10 +45,10 @@ public class CategoriaController {
 
 	}
 
-	@PutMapping
-	private ResponseEntity<CategoriaVO> update(@RequestBody CategoriaVO categoria) {
+	@PutMapping("/{codigo}")
+	private ResponseEntity<CategoriaVO> update(@PathVariable Long codigo, @RequestBody  CategoriaVO categoria) {
 
-		return ResponseEntity.ok(service.update(categoria));
+		return ResponseEntity.ok(service.update(codigo, categoria));
 
 	}
 

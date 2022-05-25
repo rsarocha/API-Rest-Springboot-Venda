@@ -1,6 +1,7 @@
 package br.com.venda.service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -59,12 +60,16 @@ public class CategoriaService {
 		return converterEntityParaVO(save);
 	}
 
-	public CategoriaVO update(CategoriaVO vo) {
+	public CategoriaVO update(Long codigo, CategoriaVO vo) {
 
 		validarParaAtualizar(vo);
-		repository.save(converterVOParaEntity(vo));
 
-		return vo;
+		Optional<Categoria> entity = repository.findByCodigo(codigo);
+		entity.get().setCodigo(vo.getCodigo());
+		entity.get().setNome(vo.getNome());
+		return vo = converterEntityParaVO(repository.save(entity.get()));
+		
+
 	}
 
 	private void verificarExistenciaDeCategoria(CategoriaVO categoria) {
@@ -86,19 +91,27 @@ public class CategoriaService {
 
 	private void validarParaAtualizar(CategoriaVO vo) {
 
-		logger.info("VALIDANDO CODIG DO INPUT PARA ATUALIZAR CATEGORIA");
+		logger.info("VALIDANDO CODIGO DO INPUT PARA ATUALIZAR CATEGORIA");
 
 		if (vo.getCodigo() == null) {
 			logger.error("CÓDIGO INFORMADO É NULO");
 			throw new CodigoInvalidoException("O código não pode ser nulo");
 		}
 
-		if (vo.getCodigo().compareTo((long) 1) <= 0) {
-			logger.error("CODIGO DA CATEGORIA INFORMADO É NEGATIVO OU ZERO");
+		if (vo.getCodigo() <= 0) {
+			logger.error("CODIGO DA CATEGORIA INFORMADO TEM QUE SER MAIOR QUE 0" + vo.getCodigo());
 			throw new CodigoInvalidoException("O código deve ser maior que zero");
 		}
 
 		logger.info("ATUALIZAR CATEGORIA: VERIFIFICANDO A EXISTENCIA DE CATEGORIA JÁ CADASTRADA NO BANCO");
+
+		Categoria entity = repository.findByCodigo(vo.getCodigo())
+				.orElseThrow(() -> new CodigoInvalidoException("Não existe codigo: " + vo.getCodigo()));
+
+		if (!entity.getCodigo().equals(vo.getCodigo()) && repository.findByCodigo(vo.getCodigo()).isPresent()) {
+			logger.error("JÁ EXISTE CATEGORIA CADASTRADA COM O CÓDIGO: " + vo.getCodigo());
+			throw new CategoriaCadastradaException("Já existe Categoria Cadastrada com o codigo: " + vo.getCodigo());
+		}
 
 	}
 

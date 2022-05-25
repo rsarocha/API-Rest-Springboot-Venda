@@ -26,7 +26,7 @@ public class ServiceExceptionHandler extends ResponseEntityExceptionHandler {
 	private static final String CATEGORIA_JA_CADASTRADA = "Categoria já cadastrada";
 	private static final String CODIGO_CADASTRADO = "Código Já Cadastrado";
 	private static final String CODIGO_NAO_LOCALIZADO = "Codigo não Localizado";
-	private static final String CODIGO_INVALIDO = "Codigo não pode ser nulo";
+	private static final String CODIGO_INVALIDO = "Error no Código";
 	private static final HttpStatus BAD_REQUEST = HttpStatus.BAD_REQUEST;
 //	private static final HttpStatus INTERNAL_SERVER_ERROR = HttpStatus.INTERNAL_SERVER_ERROR;
 
