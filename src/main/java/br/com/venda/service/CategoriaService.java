@@ -78,6 +78,8 @@ public class CategoriaService {
 		return converterEntityParaVO(entity.get());
 	}
 
+	// conversores e verificadores
+
 	private void verificarExistenciaDeCategoria(CategoriaVO categoria) {
 
 		logger.info("VERIFICANDO EXISTENCIA DE CATEGORIA SALVA NO BANCO");
@@ -120,8 +122,8 @@ public class CategoriaService {
 		}
 
 	}
-
-	// conversores
+	
+	public void verificarParaDelete() {}
 
 	public Categoria converterVOParaEntity(CategoriaVO vo) {
 
