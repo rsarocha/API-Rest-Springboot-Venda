@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,16 +46,17 @@ public class CategoriaController {
 	}
 
 	@PutMapping("/{codigo}")
-	private ResponseEntity<CategoriaVO> update(@PathVariable Long codigo, @RequestBody  CategoriaVO categoria) {
+	private ResponseEntity<CategoriaVO> update(@PathVariable Long codigo, @RequestBody CategoriaVO categoria) {
 
 		return ResponseEntity.ok(service.update(codigo, categoria));
 
 	}
-	
-	@DeleteMapping("/{codigo}")
-	public ResponseEntity<CategoriaVO> delete(@PathVariable Long codigo) {
-		return ResponseEntity.ok(service.delete(codigo));
-		
-	}
+
+//	@DeleteMapping("/{codigo}")
+//	public ResponseEntity<?> delete(@PathVariable Long codigo) {
+//		service.delete(codigo);
+//		return ResponseEntity.noContent().build();
+//
+//	}
 
 }

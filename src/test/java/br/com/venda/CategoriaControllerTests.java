@@ -16,8 +16,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import br.com.venda.VO.CategoriaVO;
@@ -31,6 +34,8 @@ class CategoriaControllerTests {
 	static final String URL = "http://localhost:8080";
 	private static final String CATEGORIA = "/categorias";
 	private static StringBuilder path = new StringBuilder(URL);
+	private static final String NOME_CATEGORIA = "Roupas";
+	private static final Long CODIGO = 17L;
 
 	@Autowired
 	private CategoriaRepository repository;
@@ -39,11 +44,253 @@ class CategoriaControllerTests {
 
 	@Test
 	@Order(1)
-	void buscarCategoria() {
+	void esperaSalvarCategoriaComSucesso() {
+
+		CategoriaVO categoriaVO = gerarVOSalvarAtualizar();
+
+		HttpHeaders cabecalho = new HttpHeaders();
+		cabecalho.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<CategoriaVO> vo = new HttpEntity<CategoriaVO>(categoriaVO, cabecalho);
+
+		ParameterizedTypeReference<CategoriaVO> responseType = new ParameterizedTypeReference<>() {
+		};
+
+		ResponseEntity<CategoriaVO> response = restTemplate.exchange(path.toString(), HttpMethod.POST, vo,
+				responseType);
+
+		Optional<Categoria> categoria = repository.findByCodigo(response.getBody().getCodigo());
+
+		assertEquals(response.getBody().getCodigo(), categoria.get().getCodigo());
+		assertEquals(HttpStatus.CREATED, response.getStatusCode());
+
+	}
+
+	@Test
+	@Order(2)
+	void esperaNaoSalvarCategoriaComMesmoCodigo() {
+
+		CategoriaVO categoriaVO = gerarVOTentarSalvarComErroNoCodigo();
+
+		HttpHeaders cabecalho = new HttpHeaders();
+		cabecalho.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<CategoriaVO> vo = new HttpEntity<CategoriaVO>(categoriaVO, cabecalho);
+
+		ParameterizedTypeReference<CategoriaVO> responseType = new ParameterizedTypeReference<>() {
+		};
+
+		ResponseEntity<CategoriaVO> response = restTemplate.exchange(path.toString(), HttpMethod.POST, vo,
+				responseType);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+	}
+
+	@Test
+	@Order(3)
+	void esperaNaoSalvarCategoriaComOMesmoNome() {
+
+		CategoriaVO categoriaVO = gerarVOSalvarAtualizar();
+
+		HttpHeaders cabecalho = new HttpHeaders();
+		cabecalho.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<CategoriaVO> vo = new HttpEntity<CategoriaVO>(categoriaVO, cabecalho);
+
+		ParameterizedTypeReference<CategoriaVO> responseType = new ParameterizedTypeReference<>() {
+		};
+
+		ResponseEntity<CategoriaVO> response = restTemplate.exchange(path.toString(), HttpMethod.POST, vo,
+				responseType);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+	}
+
+	@Test
+	@Order(4)
+	void esperaNaoSalvarCategoriaComCodigoMenorOuIgualAZero() {
+
+		CategoriaVO categoriaVO = gerarVOTentarSalvarComErroNoCodigo();
+
+		categoriaVO.setCodigo(-1L);
+
+		HttpHeaders cabecalho = new HttpHeaders();
+		cabecalho.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<CategoriaVO> vo = new HttpEntity<CategoriaVO>(categoriaVO, cabecalho);
+
+		ParameterizedTypeReference<CategoriaVO> responseType = new ParameterizedTypeReference<>() {
+		};
+
+		ResponseEntity<CategoriaVO> response = restTemplate.exchange(path.toString(), HttpMethod.POST, vo,
+				responseType);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+	}
+
+	@Test
+	@Order(5)
+	void esperaNaoSalvarCategoriaComCodigoNulo() {
+
+		CategoriaVO categoriaVO = gerarVOTentarSalvarComErroNoCodigo();
+		categoriaVO.setCodigo(null);
+
+		HttpHeaders cabecalho = new HttpHeaders();
+		cabecalho.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<CategoriaVO> vo = new HttpEntity<CategoriaVO>(categoriaVO, cabecalho);
+
+		ParameterizedTypeReference<CategoriaVO> responseType = new ParameterizedTypeReference<>() {
+		};
+
+		ResponseEntity<CategoriaVO> response = restTemplate.exchange(path.toString(), HttpMethod.POST, vo,
+				responseType);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+	}
+
+	@Test
+	@Order(6)
+	void esperaNaoAtualizarCategoriaComOMesmoNome() {
+
+		Optional<Categoria> entity = repository.findByCodigo(CODIGO);
+
+		path.append("/" + entity.get().getCodigo());
+
+		CategoriaVO categoriaVO = gerarVOSalvarAtualizar();
+
+		categoriaVO.setNome(NOME_CATEGORIA);
+
+		HttpHeaders cabecalho = new HttpHeaders();
+		cabecalho.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<CategoriaVO> vo = new HttpEntity<CategoriaVO>(categoriaVO, cabecalho);
+
+		ParameterizedTypeReference<CategoriaVO> responseType = new ParameterizedTypeReference<>() {
+		};
+
+		ResponseEntity<CategoriaVO> response = restTemplate.exchange(path.toString(), HttpMethod.PUT, vo, responseType);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+	}
+
+	@Test
+	@Order(7)
+	void esperaAtualizarCategoria() {
+
+		Optional<Categoria> entity = repository.findByCodigo(CODIGO);
+
+		path.append("/" + entity.get().getCodigo());
+
+		CategoriaVO categoriaVO = gerarVOSalvarAtualizar();
+		categoriaVO.setCodigo(CODIGO);
+		categoriaVO.setNome("Tenis");
+
+		HttpHeaders cabecalho = new HttpHeaders();
+		cabecalho.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<CategoriaVO> vo = new HttpEntity<CategoriaVO>(categoriaVO, cabecalho);
+
+		ParameterizedTypeReference<CategoriaVO> responseType = new ParameterizedTypeReference<>() {
+		};
+
+		ResponseEntity<CategoriaVO> response = restTemplate.exchange(path.toString(), HttpMethod.PUT, vo, responseType);
+
+		Optional<Categoria> categoria = repository.findByCodigo(response.getBody().getCodigo());
+
+		assertEquals(response.getBody().getCodigo(), categoria.get().getCodigo());
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+
+	}
+
+	@Test
+	@Order(8)
+	void esperaNaoAtualizarCategoriaCodigoNulo() {
+
+		Optional<Categoria> entity = repository.findByCodigo(CODIGO);
+
+		path.append("/" + entity.get().getCodigo());
+
+		CategoriaVO categoriaVO = gerarVOSalvarAtualizar();
+		categoriaVO.setCodigo(null);
+		categoriaVO.setNome("Tenis");
+
+		HttpHeaders cabecalho = new HttpHeaders();
+		cabecalho.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<CategoriaVO> vo = new HttpEntity<CategoriaVO>(categoriaVO, cabecalho);
+
+		ParameterizedTypeReference<CategoriaVO> responseType = new ParameterizedTypeReference<>() {
+		};
+
+		ResponseEntity<CategoriaVO> response = restTemplate.exchange(path.toString(), HttpMethod.PUT, vo, responseType);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+	}
+
+	@Test
+	@Order(9)
+	void esperaNaoAtualizarCategoriaComCodigoNenorQueZero() {
+
+		Optional<Categoria> entity = repository.findByCodigo(CODIGO);
+
+		path.append("/" + entity.get().getCodigo());
+
+		CategoriaVO categoriaVO = gerarVOSalvarAtualizar();
+		categoriaVO.setCodigo(-1L);
+		categoriaVO.setNome("Tenis");
+
+		HttpHeaders cabecalho = new HttpHeaders();
+		cabecalho.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<CategoriaVO> vo = new HttpEntity<CategoriaVO>(categoriaVO, cabecalho);
+
+		ParameterizedTypeReference<CategoriaVO> responseType = new ParameterizedTypeReference<>() {
+		};
+
+		ResponseEntity<CategoriaVO> response = restTemplate.exchange(path.toString(), HttpMethod.PUT, vo, responseType);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+	}
+
+	@Test
+	@Order(9)
+	void esperaNaoAtualizarCategoriaComCodigoZero() {
+
+		Optional<Categoria> entity = repository.findByCodigo(CODIGO);
+
+		path.append("/" + entity.get().getCodigo());
+
+		CategoriaVO categoriaVO = gerarVOSalvarAtualizar();
+		categoriaVO.setCodigo(0L);
+		categoriaVO.setNome("Tenis");
+
+		HttpHeaders cabecalho = new HttpHeaders();
+		cabecalho.setContentType(MediaType.APPLICATION_JSON);
+
+		HttpEntity<CategoriaVO> vo = new HttpEntity<CategoriaVO>(categoriaVO, cabecalho);
+
+		ParameterizedTypeReference<CategoriaVO> responseType = new ParameterizedTypeReference<>() {
+		};
+
+		ResponseEntity<CategoriaVO> response = restTemplate.exchange(path.toString(), HttpMethod.PUT, vo, responseType);
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+
+	}
+
+	@Test
+	@Order(10)
+	void esperaBuscarCategoriaPorFindAll() {
 
 		List<Categoria> entity = repository.findAll();
-
-		path.append("/");
 
 		ParameterizedTypeReference<List<CategoriaVO>> responseType = new ParameterizedTypeReference<>() {
 		};
@@ -56,10 +303,10 @@ class CategoriaControllerTests {
 	}
 
 	@Test
-	@Order(2)
-	void buscarCategoriaPorCodigoValido() {
+	@Order(11)
+	void esperaBuscarCategoriaPorCodigoValido() {
 
-		Optional<Categoria> entity = repository.findByCodigo(11L);
+		Optional<Categoria> entity = repository.findByCodigo(CODIGO);
 
 		path.append("/");
 		path.append(entity.get().getCodigo());
@@ -77,8 +324,8 @@ class CategoriaControllerTests {
 	}
 
 	@Test
-	@Order(3)
-	void buscarCategoriaPorCodigoInvalido() {
+	@Order(12)
+	void esperaNaoBuscarCategoriaPorCodigoInvalido() {
 
 		path.append("/");
 		path.append(999L);
@@ -90,6 +337,24 @@ class CategoriaControllerTests {
 				responseType);
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+	}
+
+	public CategoriaVO gerarVOSalvarAtualizar() {
+
+		CategoriaVO vo = new CategoriaVO();
+		vo.setCodigo(CODIGO);
+		vo.setNome(NOME_CATEGORIA);
+		return vo;
+
+	}
+
+	public CategoriaVO gerarVOTentarSalvarComErroNoCodigo() {
+
+		CategoriaVO vo = new CategoriaVO();
+		vo.setCodigo(CODIGO);
+
+		return vo;
+
 	}
 
 	@BeforeEach
