@@ -1,4 +1,4 @@
-package br.com.venda.VO;
+package br.com.venda.vo;
 
 import java.io.Serializable;
 import java.time.LocalDate;

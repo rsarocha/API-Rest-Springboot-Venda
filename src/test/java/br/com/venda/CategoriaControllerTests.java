@@ -23,9 +23,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import br.com.venda.VO.CategoriaVO;
 import br.com.venda.entity.Categoria;
 import br.com.venda.repository.CategoriaRepository;
+import br.com.venda.vo.CategoriaVO;
 
 @SpringBootTest(webEnvironment = WebEnvironment.DEFINED_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -35,7 +35,7 @@ class CategoriaControllerTests {
 	private static final String CATEGORIA = "/categorias";
 	private static StringBuilder path = new StringBuilder(URL);
 	private static final String NOME_CATEGORIA = "Roupas";
-	private static final Long CODIGO = 17L;
+	private static final Long CODIGO = 58L;
 
 	@Autowired
 	private CategoriaRepository repository;

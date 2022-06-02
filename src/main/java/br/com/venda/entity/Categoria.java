@@ -30,9 +30,6 @@ public class Categoria implements Serializable {
 	@JoinColumn(name = "PRODUTO")
 	private List<Produto> produto;
 
-	public Categoria() {
-	}
-
 	public Long getId() {
 		return id;
 	}

@@ -6,16 +6,18 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.aop.ThrowsAdvice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import br.com.venda.VO.CategoriaVO;
 import br.com.venda.entity.Categoria;
 import br.com.venda.exception.CategoriaCadastradaException;
 import br.com.venda.exception.CodigoCadastradoException;
 import br.com.venda.exception.CodigoInvalidoException;
+import br.com.venda.exception.DeletarException;
 import br.com.venda.exception.NaoLocalizadoException;
 import br.com.venda.repository.CategoriaRepository;
+import br.com.venda.vo.CategoriaVO;
 
 @Service
 public class CategoriaService {
@@ -62,25 +64,32 @@ public class CategoriaService {
 
 	public CategoriaVO update(Long codigo, CategoriaVO vo) {
 
-		validarParaAtualizar(codigo, vo);
+		validarParaAtualizar(vo);
 
 		Optional<Categoria> entity = repository.findByCodigo(codigo);
-		entity.get().setCodigo(vo.getCodigo());
-		entity.get().setNome(vo.getNome());
-		return vo = converterEntityParaVO(repository.save(entity.get()));
+
+		entity.stream().map(c -> {
+
+			c.setCodigo(vo.getCodigo());
+			c.setCodigo(vo.getCodigo());
+			c.setNome(vo.getNome());
+			return converterEntityParaVO(repository.save(entity.get()));
+
+		}).collect(Collectors.toList());
+		return vo;
 
 	}
 
-//
-//	public void delete(Long codigo) {
-//
-//		verificarParaDeletar(codigo);
-//		Optional<Categoria> entity = repository.deleteCodigo(codigo);
-//		entity.get().getCodigo();
-//
-//	}
+	public CategoriaVO delete(Long codigo, CategoriaVO vo) {
+		excluir(vo);
+		Optional<Categoria> entity = repository.findByCodigo(codigo);
+		
+		repository.delete(entity.get());
+		return converterEntityParaVO(entity.get());
 
-	// conversores e verificadores
+	}
+
+	// verificadores
 
 	private void verificarExistenciaDeCategoria(CategoriaVO vo) {
 
@@ -109,12 +118,12 @@ public class CategoriaService {
 
 	}
 
-	private void validarParaAtualizar(Long codigo, CategoriaVO vo) {
+	private void validarParaAtualizar(CategoriaVO vo) {
 
 		logger.info("VALIDANDO CODIGO PARA ATUALIZAR CATEGORIA");
 
 		if (vo.getCodigo() == null) {
-			logger.error("NÃO PODE ATUALIZAR CÓDIGO NULO " + vo.getCodigo());
+			logger.error("NÃO PODE ATUALIZAR CÓDIGO NULO ", vo.getCodigo());
 			throw new CodigoInvalidoException("Nao pode atualizar código nulo: " + vo.getCodigo());
 		}
 
@@ -132,6 +141,16 @@ public class CategoriaService {
 
 	}
 
+	private void excluir(CategoriaVO vo) {
+		if (vo.getCodigo() <= 0) {
+			logger.error("NÃO PODE DELETAR CATEGORIA POR CODIGO MENOR OU IGAU A ZERO " + vo.getCodigo());
+			throw new DeletarException(
+					"Nao pode deletar categoria por codigo menor ou igual a zero " + vo.getCodigo());
+		}
+
+	}
+
+	// Conversores
 	public Categoria converterVOParaEntity(CategoriaVO vo) {
 
 		Categoria entity = new Categoria();
